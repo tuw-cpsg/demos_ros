@@ -57,9 +57,21 @@ $ roscore &
 :
 ```
 
-Help
-----
-(you can delete this section when you're done)
+Results
+-------
+(20 points)
+
+* *TODO* State findings (accuray and precision).
+* *TODO* Explain differences in accuracy (offset) and precision
+  (covariance). Where do they come from? What is noisy/inaccurate (think about
+  all settings - model, sensors, parameters - and the algorithm itself)? Do
+  errors accumulate? Why (not)?
+
+
+(you can delete everything below and all todos when you're done)
+
+Organizational Notes
+--------------------
 
 Finally, this repo shall include:
 * This README with copy-and-paste instructions for how to start the demo (ROS
@@ -69,4 +81,11 @@ Finally, this repo shall include:
   usage (please put into a folder called `config`).
 * Optional launch file (please put into a folder called `launch`).
 
-Grading: 70 points for visualization. 30 points for the docs in this README.
+### Grading
+
+| Points |                              |
+|-------:|------------------------------|
+|     50 | visualization                |
+|     50 | docs in this README          |
+|    +10 | launch file                  |
+|    +10 | video (screencast and rover) |

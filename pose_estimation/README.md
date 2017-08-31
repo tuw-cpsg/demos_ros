@@ -2,7 +2,7 @@ Pose Estimation
 ===============
 (20 points)
 
-Sensor fusion of pose data of a rover.
+Sensor fusion of pose data of `daisy`.
 
 The pose can be measured and estimated by different ROS nodes using different
 sensors. For example, the OptiTrack system in our lab provides the position of
@@ -18,10 +18,9 @@ rover (OptiTrack is not fused, but used as reference).
 * *TODO* Fill out additional documentation, i.e., (at least) answer the
   questions below.
 * *TODO* Any changes or additions to the description above?
-* *TODO* List of pose sources. Use at least OptiTrack, odometry and your
-  implemented sensor fusion node (see
-  task [pose_estimation](../pose_estimation/README.md)).
-* *TODO* What sensor fusion algorithm used? Why?
+* *TODO* List of sources (sensors/data) you use for pose fusion.
+* *TODO* What sensor fusion algorithm is used? Why?
+* *TODO* State and explain the parameters and model of the algorithm.
 
 Setup
 -----
@@ -52,18 +51,46 @@ $ roscore &
 :
 ```
 
-Help
-----
-(you can delete this section when you're done)
+
+(you can delete everything below and all todos when you're done)
+
+Organizational Notes
+--------------------
+
+Available sensors / pose sources:
+* pose published by p2os based on encoders
+  ([p2os_driver](http://wiki.ros.org/p2os_driver)); when you start the node,
+  the robot is assumed to be at position (0,0); the encoders are used to
+  integrate the position)
+* gyroscope IMU-3000
+  ([driver](https://github.com/tuw-cpsg/general-ros-modules/))
+* accelerometer KXTF9
+  ([driver](https://github.com/tuw-cpsg/general-ros-modules/))
+* pose published by acml based on particle filtering of laser range
+  measurements with a known map
+  ([hokuyo_node](http://wiki.ros.org/hokuyo_node),
+  [acml](http://wiki.ros.org/amcl), [gmapping](http://wiki.ros.org/gmapping))
+
+All nodes publishing sensor data are provided. A launch file to start the nodes
+is provided in this package (`launch/sensors.launch`).
 
 Finally, this repo shall include:
-* This README with copy-and-paste instructions for how to start the demo (ROS
-  nodes, topic redirects if necessary). In the best case, only a ROS launch
-  file has to be executed. However, a list of commands is also ok.
 * A `src` folder containing the implementation
-  ([reference implementation](https://github.com/tuw-cpsg/sf-pkg)).
+  ([ROS tutorials](http://wiki.ros.org/ROS/Tutorials),
+  [getting started with Eigen](http://eigen.tuxfamily.org/dox/GettingStarted.html),
+  [reference implementation](https://github.com/tuw-cpsg/sf-pkg)).
+* This README with answered questions and copy-and-paste instructions for how
+  to start the demo (ROS nodes, topic redirects if necessary). In the best
+  case, only a ROS launch file has to be executed. However, a list of commands
+  is also ok.
 * Optional launch file (please put into a folder called `launch`).
-* OptiTrack shall not be used, however you can check your result against our
+* OptiTrack shall not be used, however, you can check your result against our
   "Lab-GPS" ;)
 
-Grading: 80 points for implementation. 20 points for the docs in this README.
+### Grading
+
+| Points |                     |
+|-------:|---------------------|
+|     80 | implementation      |
+|     20 | docs in this README |
+|    +10 | launch file         |
