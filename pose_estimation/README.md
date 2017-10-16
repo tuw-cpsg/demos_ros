@@ -1,8 +1,7 @@
 Pose Estimation
 ===============
-(20 points)
 
-Sensor fusion of pose data of `daisy`.
+Sensor fusion of pose data of our rover `daisy`.
 
 The pose can be measured and estimated by different ROS nodes using different
 sensors. For example, the OptiTrack system in our lab provides the position of
@@ -57,11 +56,14 @@ $ roscore &
 Organizational Notes
 --------------------
 
+Information and tutorials of our rovers can be found on
+our [group's GitHub page](https://tuw-cpsg.github.io/).
+
 Available sensors / pose sources:
 * pose published by p2os based on encoders
   ([p2os_driver](http://wiki.ros.org/p2os_driver)); when you start the node,
   the robot is assumed to be at position (0,0); the encoders are used to
-  integrate the position)
+  integrate the position;
 * gyroscope IMU-3000
   ([driver](https://github.com/tuw-cpsg/general-ros-modules/))
 * accelerometer KXTF9
@@ -70,6 +72,8 @@ Available sensors / pose sources:
   measurements with a known map
   ([hokuyo_node](http://wiki.ros.org/hokuyo_node),
   [acml](http://wiki.ros.org/amcl), [gmapping](http://wiki.ros.org/gmapping))
+* OptiTrack shall not be used, however, you can check your result against our
+  "Lab-GPS" ;)
 
 All nodes publishing sensor data are provided. A launch file to start the nodes
 is provided in this package (`launch/sensors.launch`).
@@ -84,8 +88,6 @@ Finally, this repo shall include:
   case, only a ROS launch file has to be executed. However, a list of commands
   is also ok.
 * Optional launch file (please put into a folder called `launch`).
-* OptiTrack shall not be used, however, you can check your result against our
-  "Lab-GPS" ;)
 
 ### Grading
 
