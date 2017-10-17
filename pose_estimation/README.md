@@ -26,7 +26,7 @@ Setup
 
 * *TODO* What devices are used? What should be powered on?
 * *TODO* What settings do you need on the devices? (e.g., on the rover, what
-  sensors have to be connected and how?)
+  sensors have to be connected?)
 
 Usage
 -----
@@ -38,8 +38,7 @@ Usage
   ([roslaunch](http://wiki.ros.org/roslaunch),
   [launch file format](http://wiki.ros.org/roslaunch/XML),
   [example launch file](https://github.com/tuw-cpsg/general-ros-modules/blob/master/pioneer_teleop/launch/drive.launch). It
-  is then enough to show, how to start the launch file -- optional (10 bonus
-  points)
+  is then enough to show, how to start the launch file (optional)
 * *TODO* Describe parameters, if available or needed (e.g., serial port,
   modes).
 * *TODO* Finally remove all the TODOs.

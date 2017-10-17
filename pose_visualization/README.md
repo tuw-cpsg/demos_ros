@@ -1,6 +1,5 @@
 Pose Visualization
 ==================
-(10 points)
 
 Visualization of pose data of a rover with [`rviz`](http://wiki.ros.org/rviz).
 
@@ -17,26 +16,33 @@ sources.
 
 * *TODO* Fill out additional documentation, i.e., (at least) answer the
   questions below.
-* *TODO* Any changes or additions to the description above?
-* *TODO* Put here
+* *TODO* Any changes or additions to the description above? How did you
+  visualize the differences in accuracy and precision?
+* *TODO* Put
   a
   [screenshot](https://github.com/adam-p/markdown-here/wiki/Markdown-Cheatsheet#images) of
-  the result.
+  the result into this README.
 * *TODO* List of pose sources. Use at least OptiTrack, odometry and your
-  implemented sensor fusion node (see
-  task [pose_estimation](../pose_estimation/README.md)).
+  implemented sensor fusion node
+  (see [pose_estimation](../pose_estimation/README.md)).
+* *TODO* Unfortunately, there is
+  no [display type](http://wiki.ros.org/rviz/DisplayTypes) to visualize the
+  covariance of the pose in rviz directly. There are some workarounds, for
+  example
+  [using markers](https://geus.wordpress.com/2011/09/15/how-to-represent-a-3d-normal-function-with-ros-rviz/) (optional). However,
+  it is fine if you display it in a [plot](http://wiki.ros.org/rqt_plot) or as
+  an appropriate output on the console (as long as we can follow the
+  differences in covariance somehow, it is ok).
 
 Setup
 -----
-(10 points)
 
 * *TODO* What devices are used? What should be powered on?
 * *TODO* What settings do you need on the devices? (e.g., on the rover, what
-  sensors have to be connected and how?)
+  sensors have to be connected?)
 
 Usage
 -----
-(10 points)
 
 * *TODO* Which ROS nodes have to be started? Provide the necessary commands
   here. Put links to the sources of the started ROS nodes.
@@ -45,8 +51,7 @@ Usage
   ([roslaunch](http://wiki.ros.org/roslaunch),
   [launch file format](http://wiki.ros.org/roslaunch/XML),
   [example launch file](https://github.com/tuw-cpsg/general-ros-modules/blob/master/pioneer_teleop/launch/drive.launch). It
-  is then enough to show, how to start the launch file -- optional (20 bonus
-  points)
+  is then enough to show, how to start the launch file (optional)
 * *TODO* Describe parameters, if available or needed (e.g., serial port,
   modes).
 * *TODO* Finally remove all the TODOs.
@@ -59,9 +64,8 @@ $ roscore &
 
 Results
 -------
-(20 points)
 
-* *TODO* State findings (accuray and precision).
+* *TODO* State findings (accuracy and precision).
 * *TODO* Explain differences in accuracy (offset) and precision
   (covariance). Where do they come from? What is noisy/inaccurate (think about
   all settings - model, sensors, parameters - and the algorithm itself)? Do
@@ -87,5 +91,4 @@ Finally, this repo shall include:
 |-------:|------------------------------|
 |     50 | visualization                |
 |     50 | docs in this README          |
-|    +10 | launch file                  |
-|    +10 | video (screencast and rover) |
+|    +20 | covariance in rviz           |
