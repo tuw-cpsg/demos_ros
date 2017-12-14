@@ -36,6 +36,7 @@ class KalmanFilter(object):
             [0., 0., 0., 1., 0., 0.]
         ])
 
+
     def f(self, x, u):
         """ Calculate the next state. """
         T = self.T
@@ -86,6 +87,7 @@ class PoseEstimation(object):
 
         self.x = np.matrix(np.zeros((6, 1), dtype=np.double)) # x(0, 0)
         self.P = np.matrix(np.zeros((6, 6), dtype=np.double)) # P(0, 0)
+        self.u_tm1 = np.matrix([[0], [0]])
 
         self.filter = KalmanFilter()
 
@@ -118,8 +120,9 @@ class PoseEstimation(object):
             sample['/pi/imu3000/angular_velocity'].vector.z,
         ]).transpose()
 
-        # Get control data
-        u = np.matrix([
+        # Get control data and store it for the next iteration.
+        u = self.u_tm1
+        self.u_tm1 = np.matrix([
             sample['/teleop/cmd_vel'].linear.x,
             sample['/teleop/cmd_vel'].angular.z
         ]).transpose()
