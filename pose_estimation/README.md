@@ -49,7 +49,13 @@ The following sensor data is integrated as observation vector **__`z`__**.
 * Odometry rotational rate about z-axis (`z_or`)
 
 Gyro and Accelerometer data is provided by the onboard-RPi (see Setup below) via the topics `/pi/imu3000/angular_velocity` and `/pi/kxtf9/acceleration`.
+Odometry observations are published by the robot to the topic `/p2os/pose`.
 
+Needed ROS topics:
+* `/pi/imu3000/angular_velocity`
+* `/pi/kxtf9/acceleration`
+* `/teleop/cmd_vel`
+* `/p2os/pose`
 
 Sensor fusion algorithm
 -----------------------
@@ -60,27 +66,22 @@ Sensor fusion algorithm
 Setup
 -----
 
-* *TODO* What devices are used? What should be powered on?
- raspberry, imu und acc vom raspberry, onboard computer, microcontroller board
-* *TODO* What settings do you need on the devices? (e.g., on the rover, what
-  sensors have to be connected?)
+* The power supply of the robot must be turned on, which powers the robots microcontroller and the onboard computer (`daisy`), 
+as well as the raspberry pi (`daisy-pi`). Gyroscopes and Accelerometer should be connected and supplied with power by the Pi.
+* The Development-VM must be run on a PC connected to the Wifi `Entenhausen` and should be configured for Networking to be able to `ping daisy-pi`.
+* For settings see the launch file `run.launch`.
   
-Additional dependency:
+Additional python dependency on the Dev-VM:
 
 ```
 pip install scipy
 ```
 
-Topics:
-/pi/imu3000/angular_velocity
-/pi/kxtf9/acceleration
-/teleop/cmd_vel
-/p2os/pose 
 
 Usage
 -----
 
-* First start the ROS master (this example launch file combines the `sensors.launch` with the ability to teleoperate):
+* First start the ROS master and all required nodes (this example launch file combines the `sensors.launch` with the ability to teleoperate):
 ```
 $ roslaunch pose_estimation example.launch
 ```
@@ -88,15 +89,19 @@ $ roslaunch pose_estimation example.launch
 ```
 $ rosrun pose_estimation sensor_node.py
 ```
+[sensor_node.py](scripts/sensor_node.py)
 > at this version it only inter/extrapolates the observations and control inputs to one common timestamp, but can be used for smoothing and other purposes.
 
-describe output and plan to create message.
+It subscribes to the the above specifed topics for observations and control inputs, interpolates them to one common timestamp and publishes as csv-string to the topic
+> this string message is a quick-fix and will be changed in the future. How to extract the data from this string can bee seen at [kf_node.py](https://github.com/tomas-thalmann/demos_ros/blob/ea9131fc606e2a0cddc0ad7371a2a84cd53502d8/pose_estimation/scripts/kf_node.py#L29-L34)
 
 * Finally start the pose estimation:
 ```
 $ rosrun pose_estimation kf_node.py
 ```
+[kf_node.py](scripts/kf_node.py)
 This one subscribes to the `/cps_pe/kfobs` topic and does the sensor fusion in a KF. At this point it also publishes a String message to the the `/cps_pe/kfestimate` topic containing a csv-string of the timestamp + the six parameters of the model in the above specified order.
+> again the usage of a string message is a quick-fix and will be changed in the future.
 
 Alternatively you can run it also via the launch file `run.launch` which is in fact `example.launch` + the two cps_pe Nodes:
 
@@ -104,5 +109,14 @@ Alternatively you can run it also via the launch file `run.launch` which is in f
 $ roslaunch pose_estimation run.launch
 ```
 
+The resulting ROS graph should look like:
+
+![ROS graph](docs/rosgraph.png?raw=true "ROS graph")
+
+when issueing:
+
+```
+$ rosrun rqt_graph rqt_graph
+```
 
 
