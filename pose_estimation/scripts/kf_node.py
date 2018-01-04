@@ -4,6 +4,7 @@ import numpy as np
 import rospy
 from numpy.linalg import solve
 from std_msgs.msg import Float64MultiArray, String
+from pose_estimation.msg import InputObs
 
 
 class KalmanPoseEstimator:
@@ -27,10 +28,13 @@ class KalmanPoseEstimator:
         self.P_j = np.zeros((self._dimx, self._dimx), dtype=np.float64)
 
     def get_data(self, data):
-        values = np.fromstring(data.data, dtype=np.float64, sep=',')
-        t = values[0]
-        u = values[1:3]
-        z = values[3:]
+        # values = np.fromstring(data.data, dtype=np.float64, sep=',')
+        # t = values[0]
+        # u = values[1:3]
+        # z = values[3:]
+        t = data.header.stamp.secs + data.header.stamp.nsecs / 1e9
+	u = np.array(data.control)
+        z = np.array(data.obs)
         return t, u, z
 
     def T_x(self, x_j, dt):
@@ -148,7 +152,7 @@ def estimation():
     pose_pub = rospy.Publisher('/cps_pe/kfestimate', String, queue_size=10)
     kf = KalmanPoseEstimator(pose_pub)
 
-    rospy.Subscriber('/cps_pe/kfobs', String, kf.obs_callback)
+    rospy.Subscriber('/cps_pe/kfobs', InputObs, kf.obs_callback)
 
     # spin() simply keeps python from exiting until this node is stopped
     rospy.spin()

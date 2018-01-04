@@ -5,14 +5,15 @@ import numpy as np
 import time
 from scipy.interpolate import interpolate
 from copy import deepcopy
-from std_msgs.msg import String
+from std_msgs.msg import String, Header
+from pose_estimation.msg import InputObs
 from geometry_msgs.msg import Vector3Stamped, Twist
 from nav_msgs.msg import Odometry
 
 # init node
 rospy.init_node('get_sensor_data', anonymous=True)
 # publisher sending string-message to kfobs-topic
-pub = rospy.Publisher('/cps_pe/kfobs', String, queue_size=10)
+pub = rospy.Publisher('/cps_pe/kfobs', InputObs, queue_size=10)
 t0 = time.time()
 # "Buffer"-lists where last 5 sensor data is stored
 accB = []
@@ -114,9 +115,21 @@ def talker():
         del int_acc[0]
         del int_gyr[0]
         del int_odo[0]
+        del int_cmd[0]
         # publish the summed list of the synchronized data lists as String message
-        data = str(int_cmd + int_gyr + int_acc + int_odo)
-        pub.publish(data[1:-1])
+        data = InputObs()
+        data.header = Header()
+        data.header.stamp = rospy.Time.now()
+        data.control = int_cmd
+	print(int_cmd)
+	help = int_gyr + int_acc + int_odo
+	print(help)
+        data.obs = int_gyr + int_acc + int_odo
+        
+        pub.publish(data)
+        # old string message
+        # data = str(int_cmd + int_gyr + int_acc + int_odo)
+        # pub.publish(data[1:-1])
 
 def interp2t(val, t):
     # function to interpolate data
