@@ -3,7 +3,12 @@
 import numpy as np
 import rospy
 from numpy.linalg import solve
-from std_msgs.msg import Float64MultiArray, String
+from std_msgs.msg import Header
+from geometry_msgs.msg import PoseWithCovarianceStamped
+from geometry_msgs.msg import PoseWithCovariance
+from geometry_msgs.msg import Pose
+from geometry_msgs.msg import Point
+from geometry_msgs.msg import Quaternion
 
 
 class KalmanPoseEstimator:
@@ -133,19 +138,67 @@ class KalmanPoseEstimator:
             # update
             x_k_hat, P_k_hat = self.update(x_k, P_k, z)
 
+            # NEW
+            # publishing Pose with Covariance
+            # create point message needed in pose message
+            point_msg = Point(x_k_hat[0], x_k_hat[1], 0.0)
+            # convert euler angles to quaternion
+            quat = euler2quat(np.array([0, 0, x_k_hat[2]]))
+            # create quaternion message needed in pose message
+            quat_msg = Quaternion(quat)
+            # create pose message needed in PoseWithCovariance message
+            pose_msg = Pose()
+            pose_msg.position = point_msg
+            pose_msg.orientation = quat_msg
+            # create PoseWithCovariance message needed in
+            # PoseWithCovarianceStamped message
+            pwc_msg = PoseWithCovariance()
+            pwc_msg.pose = pose_msg
+            # set up 6x6 covariance matrix needed in PoseWithCovariance message
+            # as z, rot_x and rot_y are not estimated, their variances are
+            # assumed
+            # var_z = 1e-06 (assumption that z is known with 1mm std
+            # var_rot_x = var_rot_y = 3e-06 (assumption that these rotations are
+            # known with 0.1 degree std)
+            cov_mat = np.array([[P_k_hat[0, 0], P_k_hat[0, 1], 0, 0, 0, P_k_hat[0, 2]],
+                                [P_k_hat[1, 0], P_k_hat[1, 1], 0, 0, 0, P_k_hat[1, 2]],
+                                [0, 0, 1e-06, 0, 0, 0],
+                                [0, 0, 0, 3e-06, 0, 0],
+                                [0, 0, 0, 0, 3e-06, 0],
+                                [P_k_hat[2, 0], P_k_hat[2, 1], 0, 0, 0, P_k_hat[2, 2]]])
+            pwc_msg.covariance = cov_mat.flatten().tolist()
+            # create PoseWithCovarianceStamped message
+            pwcs_msg = PoseWithCovarianceStamped()
+            pwcs_msg.pose = pwc_msg
+            pwcs_msg.header = Header()
+            pwcs_msg.header.stamp = rospy.time.now()
+
             # publish
-            # print('state: {0}'.format(str(list(np.squeeze(x_k_hat)))))
-            state_list = [t] + list(np.squeeze(x_k_hat))
-            self._pub.publish(str(state_list)[1:-1])
+            self._pub.publish(pwcs_msg)
             # proceed with update
             self.x_j = x_k_hat.copy()
             self.P_j = P_k_hat.copy()
 
 
+def euler2quat(euler):
+
+    r, p, y = euler[0], euler[1], euler[2]
+    a = m.cos(r / 2) * m.cos(p / 2) * m.cos(y / 2) + \
+        m.sin(r / 2) * m.sin(p / 2) * m.sin(y / 2)
+    b = m.sin(r / 2) * m.cos(p / 2) * m.cos(y / 2) - \
+        m.cos(r / 2) * m.sin(p / 2) * m.sin(y / 2)
+    c = m.cos(r / 2) * m.sin(p / 2) * m.cos(y / 2) + \
+        m.sin(r / 2) * m.cos(p / 2) * m.sin(y / 2)
+    d = m.cos(r / 2) * m.cos(p / 2) * m.sin(y / 2) - \
+        m.sin(r / 2) * m.sin(p / 2) * m.cos(y / 2)
+
+    return [b, c, d, a]
+
 def estimation():
     rospy.init_node('kf_pose_estimator', anonymous=True)
 
-    pose_pub = rospy.Publisher('/cps_pe/kfestimate', String, queue_size=10)
+    pose_pub = rospy.Publisher('/cps_pe/kfestimate', PoseWithCovarianceStamped,
+                               queue_size=10)
     kf = KalmanPoseEstimator(pose_pub)
 
     rospy.Subscriber('/cps_pe/kfobs', String, kf.obs_callback)
