@@ -121,12 +121,12 @@ def talker():
         data.header = Header()
         data.header.stamp = rospy.Time.now()
         data.control = int_cmd
-	print(int_cmd)
-	help = int_gyr + int_acc + int_odo
-	print(help)
-        data.obs = int_gyr + int_acc + int_odo
+    print(int_cmd)
+    help = int_gyr + int_acc + int_odo
+    print(help)
+    data.obs = int_gyr + int_acc + int_odo
         
-        pub.publish(data)
+    pub.publish(data)
         # old string message
         # data = str(int_cmd + int_gyr + int_acc + int_odo)
         # pub.publish(data[1:-1])
