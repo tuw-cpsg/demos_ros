@@ -2,6 +2,7 @@
 
 import numpy as np
 import rospy
+import math as m
 from numpy.linalg import solve
 from std_msgs.msg import Header
 from geometry_msgs.msg import PoseWithCovarianceStamped
@@ -150,7 +151,7 @@ class KalmanPoseEstimator:
             # convert euler angles to quaternion
             quat = euler2quat(np.array([0, 0, x_k_hat[2]]))
             # create quaternion message needed in pose message
-            quat_msg = Quaternion(quat)
+            quat_msg = Quaternion(*quat)
             # create pose message needed in PoseWithCovariance message
             pose_msg = Pose()
             pose_msg.position = point_msg
@@ -176,7 +177,7 @@ class KalmanPoseEstimator:
             pwcs_msg = PoseWithCovarianceStamped()
             pwcs_msg.pose = pwc_msg
             pwcs_msg.header = Header()
-            pwcs_msg.header.stamp = rospy.time.now()
+            pwcs_msg.header.stamp = rospy.Time.now()
 
             # publish
             self._pub.publish(pwcs_msg)
@@ -197,7 +198,7 @@ def euler2quat(euler):
     d = m.cos(r / 2) * m.cos(p / 2) * m.sin(y / 2) - \
         m.sin(r / 2) * m.sin(p / 2) * m.cos(y / 2)
 
-    return [b, c, d, a]
+    return b, c, d, a
 
 def estimation():
     rospy.init_node('kf_pose_estimator', anonymous=True)
