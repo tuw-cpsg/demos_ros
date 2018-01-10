@@ -178,6 +178,7 @@ class KalmanPoseEstimator:
             pwcs_msg.pose = pwc_msg
             pwcs_msg.header = Header()
             pwcs_msg.header.stamp = rospy.Time.now()
+	    pwcs_msg.header.frame_id = 'odom'
 
             # publish
             self._pub.publish(pwcs_msg)
