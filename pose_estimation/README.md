@@ -135,8 +135,8 @@ $ rosrun pose_estimation sensor_node.py
 [sensor_node.py](scripts/sensor_node.py)
 > at this version it only inter/extrapolates the observations and control inputs to one common timestamp, but can be used for smoothing and other purposes.
 
-It subscribes to the the above specifed topics for observations and control inputs, interpolates them to one common timestamp and publishes as csv-string to the topic
-> this string message is a quick-fix and will be changed in the future. How to extract the data from this string can bee seen at [kf_node.py](https://github.com/tomas-thalmann/demos_ros/blob/ea9131fc606e2a0cddc0ad7371a2a84cd53502d8/pose_estimation/scripts/kf_node.py#L29-L34)
+It subscribes to the the above specifed topics for observations and control inputs, interpolates them to one common timestamp.
+The observations and control inputs are published as float64 arrays in the custom message `InputObs` (with header and timestamp) to the topic.
 
 ### Pose estimation
 
@@ -145,10 +145,9 @@ Finally start the pose estimation:
 $ rosrun pose_estimation kf_node.py
 ```
 [kf_node.py](scripts/kf_node.py)
-This one subscribes to the `/cps_pe/kfobs` topic and does the sensor fusion in a KF. At this point it also publishes a String message to the the `/cps_pe/kfestimate` topic containing a csv-string of the timestamp + the six parameters of the model in the above specified order.
-> again the usage of a string message is a quick-fix and will be changed in the future.
-
-> also when updating to a ROS message it definitely makes sense to include the estimated VCM of the states `P`.
+This one subscribes to the `/cps_pe/kfobs` topic and does the sensor fusion in a KF. At this point it also publishes a PoseWithCovarianceStamped message to the the `/cps_pe/kfestimate` topic.
+This message belongs to the geometry_msgs and a documentation can be found on: http://docs.ros.org/api/geometry_msgs/html/msg/PoseWithCovarianceStamped.html
+containing a csv-string of the timestamp + the six parameters of the model in the above specified order.
 
 ### Launch file
 

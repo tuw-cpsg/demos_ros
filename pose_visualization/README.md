@@ -18,8 +18,7 @@ sources.
   questions below.
 * *TODO* Any changes or additions to the description above? How did you
   visualize the differences in accuracy and precision?
-* *TODO* Put
-  a
+* *TODO* Put a
   [screenshot](https://github.com/adam-p/markdown-here/wiki/Markdown-Cheatsheet#images) of
   the result into this README.
 * *TODO* List of pose sources. Use at least OptiTrack, odometry and your
@@ -38,8 +37,13 @@ Setup
 -----
 
 * *TODO* What devices are used? What should be powered on?
+* Used Devices/Systems: Robot, OptiTrack system
+  On the PC in the Lab start TrackingDaisy. Now the OptiTrack system tracks the target mounted on the robot and streams the OptiTrack data to a multicast ip-address.
+  Power on the robot and be shure that the robot-internal jetson computer is running.
 * *TODO* What settings do you need on the devices? (e.g., on the rover, what
   sensors have to be connected?)
+* On the robot, the internal jetson computer (responsible for the encoder data) and the raspberry pi (with attached accelerometer and gyroscope) have to run.
+  On the PC in the Lab running TrackingDaisy, the dongle necessary for the OptiTrack system has to be attached.
 
 Usage
 -----
