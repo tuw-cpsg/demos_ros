@@ -116,7 +116,7 @@ Results
 	- not considered gyroscope parameters (e.g. bias) --> accumulative error
     - not considered odometry parameters (e.g. bias) --> accumulative error
 	- inaccurate description of the system equation in the EKF (robot model) --> accumulative error
-	- inaccurate realization of the reference (e.g. offset between optitrack target and turning point) --> constant error
+	- inaccurate realization of the reference (e.g. offset between optitrack target and robot reference point used in EKF) --> constant error
   
   
 (you can delete everything below and all todos when you're done)
