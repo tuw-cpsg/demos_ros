@@ -14,7 +14,7 @@ from std_msgs.msg import Float64MultiArray, String
 from pose_estimation.msg import InputObs
 
 # Mounting Vector
-MOUNT = np.array([[0.05, 0.07]]).T
+MOUNT = np.array([[-0.05, -0.07]]).T
 
 class KalmanPoseEstimator:
     def __init__(self, pub):
@@ -133,6 +133,7 @@ class KalmanPoseEstimator:
         if self._t is None:
             # initialize filter
             self.x_j = np.array([0., 0., 0., 0., 0., 0.])
+            self.x_j = applyMounting(self.x_j, inverse=True)
             self.P_j = np.eye(self._dimx)
             self._t = t
         else:
@@ -204,12 +205,15 @@ def euler2quat(euler):
 
     return b, c, d, a
 
-def applyMounting(x):
+def applyMounting(x, inverse=False):
 
     a = x[2]
     R = np.array([[m.cos(a), -m.sin(a)],
                   [m.sin(a), m.cos(a)]])
-    transl = np.dot(R, MOUNT)
+    if inverse:
+        transl = np.dot(R, -MOUNT)
+    else:
+        transl = np.dot(R, MOUNT)
     x[0] += transl[0, 0]
     x[1] += transl[1, 0]
 

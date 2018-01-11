@@ -61,7 +61,10 @@
     <rosparam file="$(arg mocap_config_file)" command="load" />
   </node>
   
-  <!--<node name="odom2world_tf" pkg="pose_visualization" type="odom_tf_broadcaster.py" output="screen" />-->
+  <node name="odom2world_tf" pkg="pose_visualization" type="odom_tf_broadcaster.py" output="screen" />
+
+  <!-- RVIZ node -->
+  <node pkg="rviz" type="rviz" name="rviz" args="-d $(find pose_visualization)/config/mocap_kf.rviz"/>
 
   <!-- enable motors (this node will quit after 3s) -->
   <node name="rostopic_pub_enable_motors"
