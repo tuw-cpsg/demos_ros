@@ -39,6 +39,8 @@ a_t = (u_v,t - v_t-1) / dt
 As it can be seen above the two input parameters are also used, namely **__`u = `__**`[u_v, u_omega]`, which describe the control input (steering input) to the robot. 
 They are provided by the ros topic `/p2os/cmd_vel` or `/teleop/cmd_vel` respectively.
 
+After the Kalman filter update the estimated coordinates are corrected for the mounting vector (vector between robot-zero-point and optitrack target).
+
 Observation data
 ----------------
 
