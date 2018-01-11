@@ -13,6 +13,8 @@ from geometry_msgs.msg import Quaternion
 from std_msgs.msg import Float64MultiArray, String
 from pose_estimation.msg import InputObs
 
+# Mounting Vector
+MOUNT = np.array([[0.05, 0.07]]).T
 
 class KalmanPoseEstimator:
     def __init__(self, pub):
@@ -147,6 +149,7 @@ class KalmanPoseEstimator:
             # NEW
             # publishing Pose with Covariance
             # create point message needed in pose message
+            x_k_hat = applyMounting(x_k_hat)
             point_msg = Point(x_k_hat[0], x_k_hat[1], 0.0)
             # convert euler angles to quaternion
             quat = euler2quat(np.array([0, 0, x_k_hat[2]]))
@@ -178,7 +181,7 @@ class KalmanPoseEstimator:
             pwcs_msg.pose = pwc_msg
             pwcs_msg.header = Header()
             pwcs_msg.header.stamp = rospy.Time.now()
-	    pwcs_msg.header.frame_id = 'odom'
+            pwcs_msg.header.frame_id = 'odom'
 
             # publish
             self._pub.publish(pwcs_msg)
@@ -200,6 +203,17 @@ def euler2quat(euler):
         m.sin(r / 2) * m.sin(p / 2) * m.cos(y / 2)
 
     return b, c, d, a
+
+def applyMounting(x):
+
+    a = x[2]
+    R = np.array([[m.cos(a), -m.sin(a)],
+                  [m.sin(a), m.cos(a)]])
+    transl = np.dot(R, MOUNT)
+    x[0] += transl[0, 0]
+    x[1] += transl[1, 0]
+
+    return x
 
 def estimation():
     rospy.init_node('kf_pose_estimator', anonymous=True)
