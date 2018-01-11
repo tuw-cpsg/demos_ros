@@ -145,6 +145,9 @@ class KalmanPoseEstimator:
 
             # update
             x_k_hat, P_k_hat = self.update(x_k, P_k, z)
+            # proceed with update
+            self.x_j = x_k_hat.copy()
+            self.P_j = P_k_hat.copy()
 
             # NEW
             # publishing Pose with Covariance
@@ -185,9 +188,6 @@ class KalmanPoseEstimator:
 
             # publish
             self._pub.publish(pwcs_msg)
-            # proceed with update
-            self.x_j = x_k_hat.copy()
-            self.P_j = P_k_hat.copy()
 
 
 def euler2quat(euler):
