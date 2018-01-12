@@ -54,21 +54,29 @@ Results
 
 * To derive measures for accuracy and precision as well as visualize the trajectories from odometry, EKF and optitrack, a python script has to be run which works on logged csv-files: https://github.com/tomas-thalmann/demos_ros/blob/pose-visualization-gr2/pose_visualization/scripts/process_log.py
   Data from topics can be logged with "rostopic echo -b <bag-file> <topics>"
+  
   Results for log 1
-  -----------------
+  
   Accuracy --> coordinate offsets between odometry/EKF and optitrack in the last trajectory point
+  
   odometry
+  
 	dx: 0.137m
 	dy: 0.348m
+	
   EKF
 	dx: 0.435m
 	dy: 0.236m
 	
   Precision --> standard deviation of the coordinates of odometry/EKF in the last trajectory point (given in the robot coordinate frame - not optitrack frame)
+  
   odometry (standard deviations given from wheel encoders)
+  
 	sx: 0.032m
 	sy: 0.032m
+	
   EKF (Covariance matrix is initialized as identity matrix => variances of coordinates have to be scaled as 1m standard deviation in the beginning is quite high --> scale factor in process_log.py: 0.0001m^2)
+  
 	sx: 0.704m
 	sy: 2.137m
   
