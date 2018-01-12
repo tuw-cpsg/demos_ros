@@ -58,18 +58,19 @@ Results
   Results for log 1
   
   Accuracy --> coordinate offsets between odometry/EKF and optitrack in the last trajectory point
-  
+  --------
   odometry
   
 	dx: 0.137m
 	dy: 0.348m
 	
   EKF
+  
 	dx: 0.435m
 	dy: 0.236m
 	
   Precision --> standard deviation of the coordinates of odometry/EKF in the last trajectory point (given in the robot coordinate frame - not optitrack frame)
-  
+  ---------
   odometry (standard deviations given from wheel encoders)
   
 	sx: 0.032m
