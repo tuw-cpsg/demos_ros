@@ -119,29 +119,24 @@ Results
         the estimated position gets less precise.
 
 
-* *TODO* Explain differences in accuracy (offset) and precision
+* Explain differences in accuracy (offset) and precision
   (covariance). Where do they come from? What is noisy/inaccurate (think about
   all settings - model, sensors, parameters - and the algorithm itself)? Do
   errors accumulate? Why (not)?
 
+    Measured values consist of the true value and additional noise.
+    Accuracy is the offset of the measured value from the true value, while precision
+    is the uncertainty of the measured value.
 
-(you can delete everything below and all todos when you're done)
+    In our model, we assume that the data we get from the encoders on the wheels
+    directly translate to movement of the rover. This is not entirely accurate,
+    because the wheels tend to slip, especially when rover doesn't move straight forward.
+    This decreases the accuracy of the estimation.
 
-Organizational Notes
---------------------
+    The data we get from the gyroscope and the acceleration sensor is noisy. In addition
+    to noise introduced by the sensors themselves, the movement of the rover also creates
+    additional noise (slipping wheels, jumpy movement). This decreases the precision of the estimation.
 
-Finally, this repo shall include:
-* This README with copy-and-paste instructions for how to start the demo (ROS
-  nodes, topic redirects if necessary). In the best case, only a ROS launch
-  file has to be executed. However, a list of commands is also ok.
-* Config file for `rviz`. `rviz` can be started with a config file, see `rviz`
-  usage (please put into a folder called `config`).
-* Optional launch file (please put into a folder called `launch`).
-
-### Grading
-
-| Points |                              |
-|-------:|------------------------------|
-|     50 | visualization                |
-|     50 | docs in this README          |
-|    +20 | covariance in rviz           |
+    In addition to errors introduced by the sensors, our model does not match reality.
+    We assume, for instance, that the rover accelerates to the targeted speed in one
+    timeframe (100ms). In reality, the acceleration of the rover is limited.
