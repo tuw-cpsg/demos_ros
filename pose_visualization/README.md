@@ -44,7 +44,7 @@ Usage
 * rviz-config file, specifying which messages should be visualized: https://github.com/tomas-thalmann/demos_ros/blob/pose-visualization-gr2/pose_visualization/config/mocap_kf.rviz  
 
 ```bash
-$ roscore &
+$ roslaunch pose_visualization run.launch
 :
 :
 ```
