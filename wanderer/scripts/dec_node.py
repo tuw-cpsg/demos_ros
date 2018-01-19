@@ -34,8 +34,19 @@ class DecisionMaker():
                          data.pose.pose.orientation.x,
                          data.pose.pose.orientation.y,
                          data.pose.pose.orientation.z])
-        _, _, theta = quat2euler(quat)
-        # self.delta_theta
+        _, _, self.theta = quat2euler(quat)
+
+        range_w = np.arange(-0.3, 0.35, 0.05)
+        utility_dtheta = np.array([[0, 0]])
+        for w in range_w:
+            theta_pi = self.theta + 0.3 * (self.ang_vel + w)
+            dtheta = theta_pi - self.theta_ls
+            pi2 = m.pi / 2
+            utility = (pi2 - m.fabs(dtheta)) / pi2
+            utility_dtheta = np.vstack((utility_dtheta,
+                                        np.array([[utility, dtheta]])))
+
+        self.ang_vel = utility_dtheta[np.argmax[utility_dtheta[:, 0]], 1] / 0.3
 
     def callbackLaser(self, data):
         ranges = np.array(data.ranges) 
