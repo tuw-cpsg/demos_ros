@@ -27,6 +27,7 @@ class DecisionMaker():
 
     def __init__(self, pub):
         self.ang_vel = 0.0
+        self.lin_vel = 0.1
         self.theta = 0
         self.theta_ls = None
         self.pub = pub
@@ -49,6 +50,10 @@ class DecisionMaker():
                                         np.array([[utility, dtheta]])))
 
         self.ang_vel = utility_dtheta[np.argmax[utility_dtheta[:, 0]], 1] / 0.3
+        twist = Twist()
+        twist.linear.x = self.lin_vel
+        twist.angular.z = self.ang_vel
+        self.pub.publish(twist)
   
     def callbackLaser(self, data):
         ranges, angles = self._convert_data(data)
@@ -58,10 +63,6 @@ class DecisionMaker():
         delta_theta = angles[max_pos]
         print(delta_theta)
         self.theta_ls = self.theta + delta_theta 
-        
-
-    def get_ang_vel(self):
-        return self.ang_vel
 
     def _convert_data(self, data):
         ranges = np.array(data.ranges) 
