@@ -24,35 +24,37 @@ def quat2euler(q):
 class DecisionMaker():
 
     def __init__(self):
-        self.twist = Twist()
+        self.ang_vel = 0.0
+        self.delta_theta = None
 
     def callbackKF(self, data):
         quat = np.array([data.pose.pose.orientation.w,
                          data.pose.pose.orientation.x,
                          data.pose.pose.orientation.y,
                          data.pose.pose.orientation.z])
-        _, _, yaw = quat2euler(quat)
+        _, _, theta = quat2euler(quat)
+        # self.delta_theta
+
+
 
     def callbackLaser(self, data):
         pass
 
+    def get_ang_vel(self):
+        return self.ang_vel
+
 def main():
-    twist = Twist()
     dec = DecisionMaker()
-    t0 = time.time()
+    twist = Twist()
+    lin_vel = 0.1
 
     while True:
-
         rospy.Subscriber('/cps_pe/kfestimate', PoseWithCovarianceStamped,
                          dec.callbackKF)
         rospy.Subscriber('/scan', LaserScan, dec.callbackLaser)
 
-        if (time.time() - t0) < 7.0:
-            twist.linear.x = 0.2
-            twist.angular.z = np.deg2rad(10)
-        else:
-            twist.liner.x = 0.0
-            twist.angular.z = 0.0
+        twist.linear.x = lin_vel
+        twist.angular.z = dec.get_ang_vel()
         pub.publish(twist)
 
 if __name__ == '__main__':
