@@ -1,13 +1,15 @@
 #!/usr/bin/env python
 
+import rospy
 import numpy as np
+import math as m
 import time
 from geometry_msgs.msg import Twist
 from geometry_msgs.msg import PoseWithCovarianceStamped
 from sensor_msgs.msg import LaserScan
 
 def quat2euler(q):
-    a, b, c, d = quat[0], quat[1], quat[2], quat[3]
+    a, b, c, d = q[0], q[1], q[2], q[3]
 
     c11 = a * a + b * b - c * c - d * d
     c21 = 2 * (b * c + a * d)
@@ -23,9 +25,6 @@ def quat2euler(q):
 
 class DecisionMaker():
 
-    def __init__(self):
-        self.twist = Twist()
-
     def callbackKF(self, data):
         quat = np.array([data.pose.pose.orientation.w,
                          data.pose.pose.orientation.x,
@@ -34,7 +33,10 @@ class DecisionMaker():
         _, _, yaw = quat2euler(quat)
 
     def callbackLaser(self, data):
-        pass
+        ranges = np.array(data.ranges) 
+        max_pos = np.argmax(ranges)
+        self.delta_theta = data.angle_min + max_pos * data.angle_increment
+        print(self.delta_theta)
 
 def main():
     twist = Twist()
