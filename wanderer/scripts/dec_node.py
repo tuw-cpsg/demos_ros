@@ -37,8 +37,6 @@ class DecisionMaker():
         _, _, theta = quat2euler(quat)
         # self.delta_theta
 
-
-
     def callbackLaser(self, data):
         ranges = np.array(data.ranges) 
         max_pos = np.argmax(ranges)
