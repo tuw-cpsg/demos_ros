@@ -31,6 +31,7 @@ class DecisionMaker():
         self.theta = 0
         self.theta_ls = None
         self.pub = pub
+        self.range_w = np.arange(-0.3, 0.35, 0.05)
 
     def callbackKF(self, data):
         quat = np.array([data.pose.pose.orientation.w,
@@ -50,6 +51,34 @@ class DecisionMaker():
                                         np.array([[utility, dtheta]])))
 
         self.ang_vel = utility_dtheta[np.argmax[utility_dtheta[:, 0]], 1] / 0.3
+        twist = Twist()
+        twist.linear.x = self.lin_vel
+        twist.angular.z = self.ang_vel
+        self.pub.publish(twist)
+
+    def callback_new(self, data):
+        pos = np.array([data.pose.pose.position.x, data.pose.pose.position.y])
+        quat = np.array([data.pose.pose.orientation.w,
+                         data.pose.pose.orientation.x,
+                         data.pose.pose.orientation.y,
+                         data.pose.pose.orientation.z])
+        _, _, self.theta = quat2euler(quat)
+
+        pos_pred = None
+        d = self.lin_vel * self.dt # CHANGE self.dt
+        for w in self.range_w:
+            tp = self.theta + w * self.dt # CHANGE self.dt
+            xp = pos[0] + d * m.cos(tp)
+            yp = pos[1] + d * m.sin(tp)
+            if pos_pred is None:
+                pos_pred = np.array([[xp, yp]]).T
+            else:
+                pos_pred = np.hstack((pos_pred, np.array([[xp, yp]]).T))
+
+        # CREATE method compute_utility(pos_pred, laser_pred)
+        # INTRODUCE transformed pointcloud "laser_pred"
+        util = compute_utility(pos_pred, laser_pred)
+        self.ang_vel = self.range_w[np.argmax(util)]
         twist = Twist()
         twist.linear.x = self.lin_vel
         twist.angular.z = self.ang_vel
