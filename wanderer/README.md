@@ -73,25 +73,25 @@ Usage
 If we run the launch file via
 
 ```bash
-roslaunch wanderer test.launch
+$ roslaunch wanderer test.launch
 ```
 
 we can test the running range finder via
 
 ```bash
-rostopic echo /scan
+$ rostopic echo /scan
 ```
 
 Now with the rangefinder node running and publishing to the topic, we can start the decision making node [`dec_node.py`](scripts/dec_node.py):
 
 ```bash
-rosrun wanderer dec_node.py
+$ rosrun wanderer dec_node.py
 ```
 
 Alternatively we created the launch file `run.launch`, which already starts the decision making node for the wanderer:
 
 ```bash
-roslaunch wanderer run.launch
+$ roslaunch wanderer run.launch
 ```
 
 ### Configuration
