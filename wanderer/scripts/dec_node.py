@@ -1,17 +1,17 @@
 #!/usr/bin/env python
 
-import rospy
-import numpy as np
 import math as m
-import time
-from geometry_msgs.msg import Twist
-from geometry_msgs.msg import PoseWithCovarianceStamped
-from sensor_msgs.msg import LaserScan
-from nav_msgs.msg import Odometry
 from itertools import product
 
-# half angle of the view area
+import numpy as np
+import rospy
+from geometry_msgs.msg import Twist
+from nav_msgs.msg import Odometry
+from sensor_msgs.msg import LaserScan
+
+# half angle of the view area in radiant
 VIEW_ANGLE = 45./180*np.pi
+# threshold for maximal distance to allow linear velocity of 0.0
 MAX_THRESHOLD = 3.
 
 
