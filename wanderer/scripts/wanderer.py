@@ -7,12 +7,18 @@ from __future__ import print_function, division
 
 import numpy as np
 import rospy
-from geometry_msgs.msg import Pose2D, PoseWithCovariance, PoseWithCovarianceStamped
 from std_msgs.msg import Header
+from sensor_msgs.msg import LaserScan
 
 
 def main():
     rospy.init_node('wanderer', anonymous=True)
+
+    def scan_cb(arg):
+        print(arg)
+
+    rospy.Subscriber('/scan', LaserScan, callback=scan_cb, queue_size=10)
+
     rospy.spin()
 
 
