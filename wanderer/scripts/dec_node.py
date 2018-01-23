@@ -7,33 +7,47 @@ import time
 from geometry_msgs.msg import Twist
 from geometry_msgs.msg import PoseWithCovarianceStamped
 from sensor_msgs.msg import LaserScan
-<<<<<<< HEAD
 from nav_msgs.msg import Odometry
-
-MAX_DIST_THRESHOLD = 1.
-DT = 0.1
-SPECIAL_MOVEMENT = False
-=======
 from itertools import product
 
-from wanderer.utils.helpers import predict_scan_points, select_front_distances
->>>>>>> 9230daf3df09ca2fad08b302b7c99237a26b024e
+# half angle of the view area
+VIEW_ANGLE = 45./180*np.pi
+MAX_THRESHOLD = 3.
 
 
-def quat2euler(q):
-    a, b, c, d = q[0], q[1], q[2], q[3]
+def polar2cart(angles, dists):
+    x = dists * np.cos(angles)
+    y = dists * np.sin(angles)
+    return x, y
 
-    c11 = a * a + b * b - c * c - d * d
-    c21 = 2 * (b * c + a * d)
-    c31 = 2 * (b * d - a * c)
-    c32 = 2 * (c * d + a * b)
-    c33 = a * a - b * b - c * c + d * d
 
-    p = m.asin(-c31)
-    r = m.atan2(c32, c33)
-    y = m.atan2(c21, c11)
+def cart2polar(x, y):
+    d = np.sqrt(x**2 + y**2)
+    a = np.arctan2(y, x)
+    return a, d
 
-    return r, p, y
+
+def transform(x, y, t, rot):
+    x2 = t[0] + np.cos(rot) * x + np.sin(rot) * y
+    y2 = t[1] + np.sin(rot) * x + np.cos(rot) * y
+    return x2, y2
+
+
+def transform_polar(a, d, t, rot):
+    x2 = t[0] + np.cos(a + rot) * d
+    y2 = t[1] + np.sin(a + rot) * d
+    return x2, y2
+
+
+def predict_scan_points(a, d, t, rot):
+    x, y = transform_polar(a, d, t, rot)
+    a2, d2 = cart2polar(x, y)
+    return a2, d2
+
+
+def select_front_distances(a, d):
+    idx = np.abs(a) <= VIEW_ANGLE
+    return d[idx]
 
 
 class DecisionMaker():
@@ -46,13 +60,23 @@ class DecisionMaker():
         self.max_dist = None
         self.pub = pub
         self.range_w = np.arange(-0.3, 0.35, 0.05)
-        self.range_v = np.array([0.1, 0.05, 0])
+        self.range_v = np.array([0.2, 0.1, 0.05])
+        self.range_v2 = np.array([0.2, 0.1, 0.05, 0])
         self.laser_obs = None
+        self.max_dist = None
         self.dt = 0.1
 
     def callback_new(self, data):
 
-        combinations = list(product(self.range_v, self.range_w))
+        if self.laser_obs is None:
+            return
+
+        if self.max_dist < MAX_THRESHOLD:
+            vs = self.range_v2
+        else:
+            vs = self.range_v
+
+        combinations = list(product(vs, self.range_w))
 
         utilities = None
         for c in combinations:
@@ -60,9 +84,12 @@ class DecisionMaker():
             if utilities is None:
                 utilities = u
             else:
-                utilities = np.vstack((utilities, u))
-
+               utilities = np.vstack((utilities, u))
+            
+        # print(utilities)
         candidate = utilities[np.argmax(utilities[:, 2]), :]
+        print(candidate)
+        self.max_dist = candidate[3]
 
         self.ang_vel = candidate[1]
         self.lin_vel = candidate[0]
@@ -75,14 +102,15 @@ class DecisionMaker():
         pos, t = self.predict_rel_pose(lin_vel, ang_vel)
         ak, dk = predict_scan_points(self.laser_obs[:, 0], self.laser_obs[:, 1], pos, t)
         df = select_front_distances(ak, dk)
-        util = np.min(df)
-        return np.array([[lin_vel, ang_vel, util]])
+        util = np.nanmin(df)
+        max_dist = np.nanmax(df)
+        return np.array([[lin_vel, ang_vel, util, max_dist]])
 
     def predict_rel_pose(self, v, w):
         tp = w * self.dt  # CHANGE self.dt
         xp = v * self.dt * m.cos(tp)
         yp = v * self.dt * m.sin(tp)
-        return [xp, yp], tp
+        return [-xp, -yp], -tp
 
     def callback_laser(self, data):
         ranges, angles = self._convert_data(data)
@@ -92,6 +120,15 @@ class DecisionMaker():
         ranges = np.array(data.ranges)
         angles = np.arange(len(data.ranges))
         angles = data.angle_min + angles * data.angle_increment
+        idx = ~np.isnan(angles)
+        angles = angles[idx]
+        ranges = ranges[idx]
+        idx2 = ~np.isnan(ranges)
+        angles = angles[idx2]
+        ranges = ranges[idx2]
+        idx3 = ranges <= 100.
+        angles = angles[idx3]
+        ranges = ranges[idx3]
         return ranges, angles
 
 
