@@ -7,6 +7,9 @@ import time
 from geometry_msgs.msg import Twist
 from geometry_msgs.msg import PoseWithCovarianceStamped
 from sensor_msgs.msg import LaserScan
+from itertools import product
+
+from wanderer.utils.helpers import predict_scan_points, select_front_distances
 
 
 def quat2euler(q):
@@ -34,66 +37,47 @@ class DecisionMaker():
         self.theta_ls = None
         self.pub = pub
         self.range_w = np.arange(-0.3, 0.35, 0.05)
-
-    def callbackKF(self, data):
-        quat = np.array([data.pose.pose.orientation.w,
-                         data.pose.pose.orientation.x,
-                         data.pose.pose.orientation.y,
-                         data.pose.pose.orientation.z])
-        _, _, self.theta = quat2euler(quat)
-
-        range_w = np.arange(-0.3, 0.35, 0.05)
-        utility_dtheta = np.array([[0, 0]])
-        for w in range_w:
-            theta_pi = self.theta + 0.3 * (self.ang_vel + w)
-            dtheta = theta_pi - self.theta_ls
-            pi2 = m.pi / 2
-            utility = (pi2 - m.fabs(dtheta)) / pi2
-            utility_dtheta = np.vstack((utility_dtheta,
-                                        np.array([[utility, dtheta]])))
-
-        self.ang_vel = utility_dtheta[np.argmax[utility_dtheta[:, 0]], 1] / 0.3
-        twist = Twist()
-        twist.linear.x = self.lin_vel
-        twist.angular.z = self.ang_vel
-        self.pub.publish(twist)
+        self.range_v = np.array([0.1, 0.05, 0])
+        self.laser_obs = None
+        self.dt = 0.1
 
     def callback_new(self, data):
-        pos = np.array([data.pose.pose.position.x, data.pose.pose.position.y])
-        quat = np.array([data.pose.pose.orientation.w,
-                         data.pose.pose.orientation.x,
-                         data.pose.pose.orientation.y,
-                         data.pose.pose.orientation.z])
-        _, _, self.theta = quat2euler(quat)
 
-        pos_pred = None
-        d = self.lin_vel * self.dt  # CHANGE self.dt
-        for w in self.range_w:
-            tp = self.theta + w * self.dt  # CHANGE self.dt
-            xp = pos[0] + d * m.cos(tp)
-            yp = pos[1] + d * m.sin(tp)
-            if pos_pred is None:
-                pos_pred = np.array([[xp, yp]]).T
+        combinations = list(product(self.range_v, self.range_w))
+
+        utilities = None
+        for c in combinations:
+            u = self.utility(c[0], c[1])
+            if utilities is None:
+                utilities = u
             else:
-                pos_pred = np.hstack((pos_pred, np.array([[xp, yp]]).T))
+                utilities = np.vstack((utilities, u))
 
-        # CREATE method compute_utility(pos_pred, laser_pred)
-        # INTRODUCE transformed pointcloud "laser_pred"
-        util = compute_utility(pos_pred, laser_pred)
-        self.ang_vel = self.range_w[np.argmax(util)]
+        candidate = utilities[np.argmax(utilities[:, 2]), :]
+
+        self.ang_vel = candidate[1]
+        self.lin_vel = candidate[0]
         twist = Twist()
         twist.linear.x = self.lin_vel
         twist.angular.z = self.ang_vel
         self.pub.publish(twist)
 
-    def callbackLaser(self, data):
+    def utility(self, lin_vel, ang_vel):
+        pos, t = self.predict_rel_pose(lin_vel, ang_vel)
+        ak, dk = predict_scan_points(self.laser_obs[:, 0], self.laser_obs[:, 1], pos, t)
+        df = select_front_distances(ak, dk)
+        util = np.min(df)
+        return np.array([[lin_vel, ang_vel, util]])
+
+    def predict_rel_pose(self, v, w):
+        tp = w * self.dt  # CHANGE self.dt
+        xp = v * self.dt * m.cos(tp)
+        yp = v * self.dt * m.sin(tp)
+        return [xp, yp], tp
+
+    def callback_laser(self, data):
         ranges, angles = self._convert_data(data)
-        in_front = np.argmin(np.abs(angles)) - 5, np.argmin(np.abs(angles)) + 5
-        # print(ranges[in_front[0]:in_front[1]])
-        max_pos = np.argmax(ranges)
-        delta_theta = angles[max_pos]
-        print(delta_theta)
-        self.theta_ls = self.theta + delta_theta
+        self.laser_obs = np.array([angles, ranges]).T
 
     def _convert_data(self, data):
         ranges = np.array(data.ranges)
@@ -105,14 +89,9 @@ class DecisionMaker():
 def main():
     pub = rospy.Publisher('/teleop/cmd_vel', Twist, queue_size=10)
     dec = DecisionMaker(pub)
-    twist = Twist()
-    # lin_vel = 0.1
-    lin_vel = 0
-
     rospy.Subscriber('/cps_pe/kfestimate', PoseWithCovarianceStamped,
-                     dec.callbackKF)
-    rospy.Subscriber('/scan', LaserScan, dec.callbackLaser)
-
+                     dec.callback_new)
+    rospy.Subscriber('/scan', LaserScan, dec.callback_laser)
     rospy.spin()
 
 
