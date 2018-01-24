@@ -28,7 +28,7 @@
     <param name="use_sonar" value="false" /> <!-- sonar sensors off -->
   </node>
   <!-- laser scanner -->
-  <node machine="robot" ns="pi" name="hokuyo_node"
+  <node machine="robot" name="hokuyo_node"
       pkg="hokuyo_node" type="hokuyo_node"
       output="screen">
 
@@ -49,8 +49,8 @@
 
   <!-- nodes running on the notebook -->
   <!--
+  <node name="wanderer" pkg="wanderer" type="wanderer.py" output="screen" />
   <node name="teleop" pkg="pioneer_teleop" type="keyboard" output="screen" />
-  <node name="pose_estimation" pkg="pose_estimation" type="pose_estimation.py" output="screen" />
   -->
 
   <!-- enable motors (this node will quit after 3s) -->
