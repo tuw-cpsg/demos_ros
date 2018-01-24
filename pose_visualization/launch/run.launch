@@ -1,0 +1,74 @@
+<launch>
+  <!-- hostname of your notebook -->
+  <arg name="notebook" default="sfcps" />
+  <!-- default hostname of the robot -->
+  <arg name="robot" default="daisy" />
+  <!-- ROS distro that should be initialized on the rover -->
+  <arg name="robot-distro" default="indigo" />
+  <!-- robot's interface to arcos (firmware/driver for motors) -->
+  <arg name="robot-port" default="/dev/ttyTHS1" />
+  <!-- default hostname of the robot's Raspberry Pi -->
+  <arg name="pi" default="daisy-pi" />
+  <!-- ROS distro that should be initialized on the Pi -->
+  <arg name="pi-distro" default="kinetic" />
+  <!-- Pass in mocap_config_file:=/path/to/config.yaml to change options. -->
+  <arg name="mocap_config_file"
+       default="$(find mocap_optitrack)/config/mocap.yaml" />
+
+  <!-- machines -->
+  <machine name="robot" address="$(arg robot)"
+	   env-loader="/opt/ros/$(arg robot-distro)/env.sh" />
+  <machine name="pi" address="$(arg pi)"
+	   env-loader="/opt/ros/$(arg pi-distro)/env_pi.bash" />
+  <machine name="notebook" address="$(arg notebook)" default="true" />
+
+  <!-- remappings (it does not work inside node) -->
+  <remap from="/p2os/cmd_vel" to="/teleop/cmd_vel" />
+
+  <!-- nodes running on the robot -->
+
+  <!-- encoders, battery's voltage (and for controlling the rover) -->
+  <node machine="robot" ns="p2os" name="p2os_driver"
+	pkg="p2os_driver" type="p2os_driver"
+	output="screen">
+    <param name="port" value="$(arg robot-port)" /> <!-- interface to arcos -->
+    <param name="pulse" value="1.0" /> <!-- turn annoying beep of -->
+    <param name="use_sonar" value="false" /> <!-- sonar sensors off -->
+  </node>
+
+  <!-- nodes running on the raspberry pi -->
+
+  <!-- gyroscope -->
+  <node machine="pi" ns="pi" name="imu3000"
+        pkg="imu3000" type="imu3000"
+        output="screen" />
+  <!-- accelerometer -->
+  <node machine="pi" ns="pi" name="kxtf9"
+        pkg="kxtf9" type="kxtf9"
+        output="screen" />
+
+  <!-- nodes running on the notebook -->
+  <node name="teleop" pkg="pioneer_teleop" type="keyboard" output="screen" />
+  <node name="get_sensor_data" pkg="pose_estimation" type="sensor_node.py" output="screen" />
+  <node name="kf_pose_estimator" pkg="pose_estimation" type="kf_node.py" output="screen" />
+  <!-- mocap optitrack node -->
+  <node pkg="mocap_optitrack"
+        type="mocap_node"
+        name="mocap_node"
+        respawn="false"
+        launch-prefix=""
+        required="true">
+    <rosparam file="$(arg mocap_config_file)" command="load" />
+  </node>
+  
+  <node name="odom2world_tf" pkg="pose_visualization" type="odom_tf_broadcaster.py" output="screen" />
+
+  <!-- RVIZ node -->
+  <node pkg="rviz" type="rviz" name="rviz" args="-d $(find pose_visualization)/config/mocap_kf.rviz"/>
+
+  <!-- enable motors (this node will quit after 3s) -->
+  <node name="rostopic_pub_enable_motors"
+	pkg="rostopic" type="rostopic"
+	args="pub /p2os/cmd_motor_state p2os_msgs/MotorState 1 -1" />
+
+</launch>

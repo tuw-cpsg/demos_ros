@@ -7,16 +7,24 @@
   <arg name="robot-distro" default="indigo" />
   <!-- robot's interface to arcos (firmware/driver for motors) -->
   <arg name="robot-port" default="/dev/ttyTHS1" />
+  <!-- default hostname of the robot's Raspberry Pi -->
+  <arg name="pi" default="daisy-pi" />
+  <!-- ROS distro that should be initialized on the Pi -->
+  <arg name="pi-distro" default="kinetic" />
 
   <!-- machines -->
-  <machine name="notebook" address="$(arg notebook)" default="true" />
   <machine name="robot" address="$(arg robot)"
 	   env-loader="/opt/ros/$(arg robot-distro)/env.sh" />
+  <machine name="pi" address="$(arg pi)"
+	   env-loader="/opt/ros/$(arg pi-distro)/env_pi.bash" />
+  <machine name="notebook" address="$(arg notebook)" default="true" />
 
-  <!-- remappings (I don't know why it does not work inside node-tags) -->
+  <!-- remappings (it does not work inside node) -->
   <remap from="/p2os/cmd_vel" to="/teleop/cmd_vel" />
 
   <!-- nodes running on the robot -->
+
+  <!-- encoders, battery's voltage (and for controlling the rover) -->
   <node machine="robot" ns="p2os" name="p2os_driver"
 	pkg="p2os_driver" type="p2os_driver"
 	output="screen">
@@ -25,8 +33,21 @@
     <param name="use_sonar" value="false" /> <!-- sonar sensors off -->
   </node>
 
+  <!-- nodes running on the raspberry pi -->
+
+  <!-- gyroscope -->
+  <node machine="pi" ns="pi" name="imu3000"
+        pkg="imu3000" type="imu3000"
+        output="screen" />
+  <!-- accelerometer -->
+  <node machine="pi" ns="pi" name="kxtf9"
+        pkg="kxtf9" type="kxtf9"
+        output="screen" />
+
   <!-- nodes running on the notebook -->
   <node name="teleop" pkg="pioneer_teleop" type="keyboard" output="screen" />
+  <node name="get_sensor_data" pkg="pose_estimation" type="sensor_node.py" output="screen" />
+  <node name="kf_pose_estimator" pkg="pose_estimation" type="kf_node.py" output="screen" />
 
   <!-- enable motors (this node will quit after 3s) -->
   <node name="rostopic_pub_enable_motors"
