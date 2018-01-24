@@ -49,9 +49,9 @@
 
   <!-- nodes running on the notebook -->
   <!--
-  <node name="wanderer" pkg="wanderer" type="wanderer.py" output="screen" />
   <node name="teleop" pkg="pioneer_teleop" type="keyboard" output="screen" />
   -->
+  <node name="wanderer" pkg="wanderer" type="wanderer.py" output="screen" />
 
   <!-- enable motors (this node will quit after 3s) -->
   <node name="rostopic_pub_enable_motors"

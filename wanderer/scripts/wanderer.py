@@ -108,10 +108,10 @@ class Wanderer(object):
                 print('Fallback to longest distance:', a)
                 if self.fallbackDirection == 0:
                     if a < 0:
-                        av = -MAX_ANGVAL
+                        av = -MAX_ANGVEL
                         self.fallbackDirection = -1
                     else:
-                        av = MAX_ANGVAL
+                        av = MAX_ANGVEL
                         self.fallbackDirection = 1
                 else:
                     av = self.fallbackDirection * 0.3
@@ -119,7 +119,7 @@ class Wanderer(object):
             else:
                 print('Fallback to constant angular velocity')
                 # constant angular velocity
-                av = MAX_ANGVAL
+                av = MAX_ANGVEL
                 self.fallbackDirection = 1
         else:
             self.fallbackDirection = 0
