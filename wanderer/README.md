@@ -11,8 +11,27 @@ Implementation of a simple wanderer taking the path with the farthest distance
   * The utility function of a state is the minimum distance to the
     next obstacle in a defined corridor in the rover's driving direction.
 
+    ![variables](docs/variables.png)
+    ![cset](docs/cset.png)
+
+    The utility is then defined as follows:
+
+    ![utility](docs/utility.png)
+
+    We then calculate the maximum expected utility for a defined set
+    of actions (tuples of linear and angular velocities). The state for
+    which the utility is calculated is extrapolated from the current position
+    and the action under consideration.
+
+    If the utility is smaller than a defined threshold FB, the result
+    from the utility function is discarded.
+    If the current laserscan contains a point that is further away than
+    FB, the rover turns towards this point. If no such point exists, the
+    rover turns until it sees such a point.
+
   * Decision network:
-  ![network](images/network.png)
+
+    ![network](docs/network.png)
 
     The decision variables are the linear and angular velocity. These
     influence the position of the rover (with some uncertainties and noise),
@@ -22,6 +41,10 @@ Implementation of a simple wanderer taking the path with the farthest distance
 * *TODO* Implement the decision making process in a ROS node. Map the
   formulated decision maker to the code (formulas/evalutions/decisions to parts
   of the code).
+
+    
+
+
 * *TODO* State and explain the decision maker and the implementation.
 
 Setup
