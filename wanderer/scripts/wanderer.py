@@ -55,57 +55,57 @@ class Wanderer(object):
             dy = dy + linvel * np.sin(theta) * dt
 
         # Transform the point cloud
-        cartX = np.cos(angles) * ranges - dx
-        cartY = np.sin(angles) * ranges - dy
+        #cartX = np.cos(angles) * ranges - dx
+        #cartY = np.sin(angles) * ranges - dy
 
-        newRanges = np.sqrt(cartX**2 + cartY**2)
-        newAngles = np.arctan2(cartY, cartX) - theta
+        #newRanges = np.sqrt(cartX**2 + cartY**2)
+        #newAngles = np.arctan2(cartY, cartX) - theta
 
         # New approach
-        #cartX = np.cos(angles) * ranges
-        #cartY = np.sin(angles) * ranges
+        cartX = np.cos(angles) * ranges
+        cartY = np.sin(angles) * ranges
 
-        #x1 = dx
-        #y1 = dy
-        #x2 = dx + np.cos(theta)
-        #y2 = dy + np.sin(theta)
+        x1 = dx
+        y1 = dy
+        x2 = dx + np.cos(theta)
+        y2 = dy + np.sin(theta)
 
-        #d = (np.abs((y2 - y1) * cartX - (x2 - x1) * cartY + x2 * y1 - y2 * x1) /
-        #        np.sqrt((y2 - y1)**2 + (x2 - x1)**2))
+        d = (np.abs((y2 - y1) * cartX - (x2 - x1) * cartY + x2 * y1 - y2 * x1) /
+                np.sqrt((y2 - y1)**2 + (x2 - x1)**2))
 
-        #indices = np.abs(d) <= ROVER_WIDTH / 2
-        #drvPointsX = cartX[indices]
-        #drvPointsY = cartY[indices]
+        indices = np.abs(d) <= ROVER_WIDTH / 2
+        drvPointsX = cartX[indices]
+        drvPointsY = cartY[indices]
+
+        try:
+            m = np.min(np.sqrt((drvPointsX - dx)**2 + (drvPointsY - dy)**2))
+        except ValueError:
+            m = 0
+
+        return m, (0, 0)
+
+        #indices = np.abs(newAngles) <= DRIVING_ANGLE
+        #drvRanges = newRanges[indices]
+        #drvAngles = newAngles[indices]
+
+        ## Debugging
+        #try:
+        #    i = np.nanargmin(drvRanges)
+        #    r = drvRanges[i]
+        #    a = drvAngles[i] + theta
+
+        #    x = np.cos(a) * r + dx
+        #    y = np.sin(a) * r + dy
+        #except ValueError:
+        #    x = 0
+        #    y = 0
 
         #try:
-        #    m = np.min(np.sqrt((drvPointsX - dx)**2 + (drvPointsY - dy)**2))
+        #    m = np.nanmin(drvRanges)
         #except ValueError:
-        #    m = 0
+        #    m = np.inf
 
-        #return m, (0, 0)
-
-        indices = np.abs(newAngles) <= DRIVING_ANGLE
-        drvRanges = newRanges[indices]
-        drvAngles = newAngles[indices]
-
-        # Debugging
-        try:
-            i = np.nanargmin(drvRanges)
-            r = drvRanges[i]
-            a = drvAngles[i] + theta
-
-            x = np.cos(a) * r + dx
-            y = np.sin(a) * r + dy
-        except ValueError:
-            x = 0
-            y = 0
-
-        try:
-            m = np.nanmin(drvRanges)
-        except ValueError:
-            m = np.inf
-
-        return m, (x, y)
+        #return m, (x, y)
 
 
     def scan_cb(self, msg):
@@ -121,7 +121,6 @@ class Wanderer(object):
         ranges = np.array(msg.ranges)
         angles = np.array([msg.angle_min + inc * i for i in range(len(msg.ranges))])
 
-        # Get ranges in driving direction
         indices = np.abs(angles) <= DRIVING_ANGLE
         drvRanges = ranges[indices]
         drvAngles = angles[indices]
