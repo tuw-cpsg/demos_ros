@@ -7,6 +7,10 @@ Implementation of a simple wanderer taking the path with the farthest distance
 * *TODO* Formulate the problem (wandering into the direction of the farthest
   distance) as simple decision making. What is the utility function? What is
   the decision network (random variables used, utility, decision)? Explain.
+
+  * The utility function of a state is the minimum distance to the
+    next obstacle in a defined corridor in the rover's driving direction.
+
 * *TODO* Implement the decision making process in a ROS node. Map the
   formulated decision maker to the code (formulas/evalutions/decisions to parts
   of the code).
