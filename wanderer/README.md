@@ -4,7 +4,7 @@ Wanderer
 Implementation of a simple wanderer taking the path with the farthest distance
 (e.g., by analyzing the scan of the laser range finder).
 
-* *TODO* Formulate the problem (wandering into the direction of the farthest
+* Formulate the problem (wandering into the direction of the farthest
   distance) as simple decision making. What is the utility function? What is
   the decision network (random variables used, utility, decision)? Explain.
 
@@ -38,61 +38,42 @@ Implementation of a simple wanderer taking the path with the farthest distance
     which influence the image scanned by the laser scanner.
     This image is also noisy.
 
-* *TODO* Implement the decision making process in a ROS node. Map the
-  formulated decision maker to the code (formulas/evalutions/decisions to parts
-  of the code).
+* State and explain the decision maker and the implementation.
 
-    
+    Decisions are made whenever a new set of points arrives from the
+    laser scanner (`Wanderer.scan_cb`).
+    We calculate the expected utility for each combination of angular
+    and linear velocities and execute the action with the maximum utility
+    if it is higher than some threshold FB.
 
-
-* *TODO* State and explain the decision maker and the implementation.
+    The utility is calculated in (`Wanderer.get_utility`). We transform
+    the coordinates from the wanderer into a cartesian coordinate system
+    and check for each point, if its normal distance to the rover's direction
+    is less than the half of the width of the rover.
 
 Setup
 -----
 
-* *TODO* What devices are used? What should be powered on?
-* *TODO* What settings do you need on the devices? (e.g., on the rover, what
+* What devices are used? What should be powered on?
+
+    On the rover, powering on all boards is sufficient.
+
+* What settings do you need on the devices? (e.g., on the rover, what
   sensors have to be connected?)
+
+    The wanderer only uses the laser scanner as input data.
+    All parameters are set to working default values in the launch file `wanderer.launch`.
 
 Usage
 -----
 
-* *TODO* Which ROS nodes have to be started? Provide the necessary commands
+* Which ROS nodes have to be started? Provide the necessary commands
   here. Put links to the sources of the started ROS nodes.
-* *TODO* Write a launch file that starts all the necessary nodes for
-  demonstration
-  ([roslaunch](http://wiki.ros.org/roslaunch),
-  [launch file format](http://wiki.ros.org/roslaunch/XML)). It is then enough
-  to show, how to start the launch file -- optional (10 bonus points)
-* *TODO* Describe parameters, if available or needed (e.g., serial port,
-  modes).
-* *TODO* Finally remove all the TODOs.
+
+    * [`p2os_driver`](http://wiki.ros.org/p2os_driver) on `daisy`
+    * [`wanderer.py`](scripts/wanderer.py) on the notebook.
+    * [`hokuyo_node`](http://wiki.ros.org/hokuyo_node) on `daisy`
 
 ```bash
-$ roscore &
-:
-:
+$ roslaunch wanderer wanderer.launch
 ```
-
-
-(you can delete everything below and all todos when you're done)
-
-Organizational Notes
---------------------
-
-Finally, this repo shall include:
-* A `src` folder containing the implementation.
-* This README with answered questions and copy-and-paste instructions for how
-  to start the demo (ROS nodes, topic redirects if necessary). In the best
-  case, only a ROS launch file has to be executed. However, a list of commands
-  is also ok.
-* Optional launch file (please put into a folder called `launch`).
-
-### Grading
-
-| Points |                     |
-|-------:|---------------------|
-|     40 | problem formulation |
-|     40 | implementation      |
-|     20 | docs in this README |
-|    +10 | launch file         |
