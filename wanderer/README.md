@@ -13,6 +13,17 @@ Implementation of a simple wanderer taking the path with the farthest distance
   The commands given to the robot are linear velocity in driving direction (ROS message Twist.linear.x) and angular velocity around the robot's z-axis (Twist.angular.z).
   Hence, linear velocity (lin_vel) and angular velocity (ang_vel) are the actions in the context of simple decision making. 
   
+  Publishing twist messages containing actions:
+  ```
+  # store the commands and publish to the topic
+  self.ang_vel = candidate[1]
+  self.lin_vel = candidate[0]
+  twist = Twist()
+  twist.linear.x = self.lin_vel
+  twist.angular.z = self.ang_vel
+  self.pub.publish(twist)
+  ```
+  
 * evidence
   
   For decision-making the point-cloud provided by the Hoyuko Laserscanner acts as evidence.
@@ -46,17 +57,66 @@ Implementation of a simple wanderer taking the path with the farthest distance
   lin_vel = (0.05, 0.1)[m/s] and ang_vel = (-0.3, -0.25, ..., 0.25, 0.3)[rad/s]
   Thus, the prediction equations are:
   ```
-  d_i = lin_vel_i * dt
-  theta_j = ang_vel_j * dt
-  x_ij = d_i * cos(theta_j)
-  y_ij = d_i * sin(theta_j)
+  $ d_i = lin_vel_i * dt $
+  $ theta_j = ang_vel_j * dt $
+  $ x_ij = d_i * cos(theta_j) $
+  $ y_ij = d_i * sin(theta_j) $
+  ```
+  Code to predict robot pose:
+  ```
+    def predict_rel_pose(self, v, w):
+        """
+        Predict the movement of the robot (corresponding to the kinematic model of the KF estimator)
+        :param v: linear velocity [m/s]
+        :param w: angular velocity [rad/s]
+        :return: transformation parameter
+        """
+        tp = w * self.dt
+        xp = v * self.dt * m.cos(tp)
+        yp = v * self.dt * m.sin(tp)
+        return [-xp, -yp], -tp
   ```
   
   Additionally, the point-cloud from the Laserscanner is predicted by using d_i as translation and theta_p_j as rotation in a transformation.
-  *TODO* more detail?
   
+  Metthods for predicting/transforming pointcloud:
   ```
-  
+  def predict_scan_points(a, d, t, rot):
+    """
+    Transforms polar coordinates by using ´transform_polar()´ and returns again polar elements
+    :param a: angles [rad]
+    :param d: distances [m]
+    :param t: translation list of length 2 [x, y] in [m]
+    :param rot: rotation angle [rad]
+    :return: transformed polar coordinates, (angles, distances) tuple
+    """
+    x, y = transform_polar(a, d, t, rot)
+    a2, d2 = cart2polar(x, y)
+    return a2, d2
+	
+  def transform_polar(a, d, t, rot):
+    """
+    Transforms polar coordinates by translation and rotation parameter
+    :param a: angles [rad]
+    :param d: distances [m]
+    :param t: translation list of length 2 [x, y] in [m]
+    :param rot: rotation angle [rad]
+    :return: transformed coordinates (x, y) tuple
+    """
+    x2 = t[0] + np.cos(a + rot) * d
+    y2 = t[1] + np.sin(a + rot) * d
+    return x2, y2
+	
+  def cart2polar(x, y):
+    """
+    Converts cartesian coordinates (right handed) to polar coordinates
+    :param x: coordinate [m]
+    :param y: coordinate [m]
+    :return: (angles, distances) tuple
+    """
+    d = np.sqrt(x**2 + y**2)
+    a = np.arctan2(y, x)
+    return a, d
   ```
   
 * utility
@@ -68,7 +128,65 @@ Implementation of a simple wanderer taking the path with the farthest distance
   Additionally, a check on the maximum distance in each set of distances is made to avoid that the robot get stuck (e.g. in room corners).
   If these maximum distances are all smaller than 3m, lin_vel = 0m/s is added to the possible actions.
   
-  *TODO* P(s'|a,e)?
+  P(s'|a,e) is assumed to be equal for each computed next state and therefore can be unconsidered.  
+  
+  Callback- and utility method where utilities are computed:
+  ```
+    def callback_new(self, data):
+        """
+        Takes the latest point cloud, does the simple utility based decision making and publishes the result to the
+        /teleop to wander around
+        :param data: data of the odometry pose (unused)
+        :return:
+        """
+        if self.laser_obs is None:
+            # skip if no laser range data available
+            return
+
+        if self.max_dist < MAX_THRESHOLD:
+            # if there is no region left to explore (maximal distance of laser range finder is smaller than a threshold)
+            # use extended set of linear velocity (including 0.0)
+            vs = self.range_v2
+        else:
+            # otherwise force the robot to keep moving
+            vs = self.range_v
+
+        # create all possible combinations of linear and angular velocity
+        combinations = list(product(vs, self.range_w))
+
+        utilities = None
+        for c in combinations:
+            # iterate over all combinations and compute the utility
+            u = self.utility(c[0], c[1])
+            if utilities is None:
+                utilities = u
+            else:
+                utilities = np.vstack((utilities, u))
+            
+        # select the command set with the maximal expected utility (MEU)
+        candidate = utilities[np.argmax(utilities[:, 2]), :]
+		...
+		
+	def utility(self, lin_vel, ang_vel):
+        """
+        Takes a pair of commands and computes the expected utility
+        :param lin_vel: linear velocity
+        :param ang_vel: angular velocity
+        :return: row vector containing the commands + utility + maximal distance
+        """
+        # predict the relative pose change introduced by the specified commands
+        pos, t = self.predict_rel_pose(lin_vel, ang_vel)
+        # predict the point cloud under the assumption that the environment does not change
+        ak, dk = predict_scan_points(self.laser_obs[:, 0], self.laser_obs[:, 1], pos, t)
+        # subselect the points within the front area
+        df = select_front_distances(ak, dk)
+        # utility is defined by the minimal distance (nearest obstacle)
+        # the further away the nearest obstacle the better
+        util = np.nanmin(df)
+        # store furthers obstacle
+        max_dist = np.nanmax(df)
+        return np.array([[lin_vel, ang_vel, util, max_dist]])
+  ```
   
 * decision network
   
@@ -77,14 +195,6 @@ Implementation of a simple wanderer taking the path with the farthest distance
   random variables: Pose, Point Cloud
   utility: minimum distances derived from predicted robot state and predicted point cloud using all possible actions (linear and angular velocity)
   decision: linear and angular velocity corresponding to the maximum expected utility
-  
-* *TODO* Implement the decision making process in a ROS node. Map the
-  formulated decision maker to the code (formulas/evalutions/decisions to parts
-  of the code).
-  
-  
-  
-* *TODO* State and explain the decision maker and the implementation.
 
 Setup
 -----
