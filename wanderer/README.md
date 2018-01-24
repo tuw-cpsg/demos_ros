@@ -4,10 +4,6 @@ Wanderer
 Implementation of a simple wanderer taking the path with the farthest distance
 (e.g., by analyzing the scan of the laser range finder).
 
-* *TODO* Formulate the problem (wandering into the direction of the farthest
-  distance) as simple decision making. What is the utility function? What is
-  the decision network (random variables used, utility, decision)? Explain.
-  
 * actions
   
   The commands given to the robot are linear velocity in driving direction (ROS message Twist.linear.x) and angular velocity around the robot's z-axis (Twist.angular.z).
