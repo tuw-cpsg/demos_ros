@@ -56,12 +56,12 @@ Implementation of a simple wanderer taking the path with the farthest distance
   The actual state is predicted by using the possible set of actions, which are chosen to be: 
   lin_vel = (0.05, 0.1)[m/s] and ang_vel = (-0.3, -0.25, ..., 0.25, 0.3)[rad/s]
   Thus, the prediction equations are:
-  $$
+  ```
   d_i = lin_vel_i * dt
   theta_j = ang_vel_j * dt
   x_ij = d_i * cos(theta_j)
   y_ij = d_i * sin(theta_j)
-  $$
+  ```
   Code to predict robot pose:
   ```
     def predict_rel_pose(self, v, w):
