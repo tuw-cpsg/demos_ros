@@ -1,0 +1,50 @@
+<launch>
+  <!-- hostname of your notebook -->
+  <arg name="notebook" default="notebook" />
+  <!-- default hostname of the robot -->
+  <arg name="robot" default="daisy" />
+  <!-- ROS distro that should be initialized on the rover -->
+  <arg name="robot-distro" default="indigo" />
+  <!-- robot's interface to arcos (firmware/driver for motors) -->
+  <arg name="robot-port" default="/dev/ttyTHS1" />
+  <!-- map -->
+  <arg name="map" default="$(find localization)/config/cpslab-empty.yaml" />
+
+  <!-- machines -->
+  <machine name="notebook" address="$(arg notebook)" default="true" />
+  <machine name="robot" address="$(arg robot)"
+	   env-loader="/opt/ros/$(arg robot-distro)/env.sh" />
+
+  <!-- remappings (it does not work inside node) -->
+  <remap from="/p2os/cmd_vel" to="/teleop/cmd_vel" />
+
+  <!-- nodes running on the robot -->
+  <node machine="robot" ns="p2os" name="p2os_driver"
+	pkg="p2os_driver" type="p2os_driver"
+	output="screen">
+    <param name="port" value="$(arg robot-port)" /> <!-- interface to arcos -->
+    <param name="pulse" value="1.0" /> <!-- turn annoying beep of -->
+    <param name="use_sonar" value="false" />
+  </node>
+  <!-- laser scanner -->
+  <node machine="robot" name="laser" pkg="hokuyo_node" type="hokuyo_node">
+    <param name="port" value="/dev/ttyACM0" />
+  </node>
+
+  <!-- nodes running on the notebook -->
+  <node name="teleop" pkg="pioneer_teleop" type="keyboard" output="screen" />
+  <!-- enable motors (this node will quit after 3s) -->
+  <node name="rostopic_pub_enable_motors"
+	pkg="rostopic" type="rostopic"
+	args="pub /p2os/cmd_motor_state p2os_msgs/MotorState 1 -1" />
+  <!-- tf base_link - laser -->
+  <node name="laser_tf_broadcaster" pkg="tf" type="static_transform_publisher"
+        args="0.18 0 0 0 0 0 base_link laser 1000"/>
+  <!-- localization -->
+  <node name="amcl" pkg="amcl" type="amcl">
+    <param name="scan" value="/scan" />
+  </node>
+  <!-- load map -->
+  <node name="map" pkg="map_server" type="map_server"
+        args="$(arg map)" />
+</launch>
