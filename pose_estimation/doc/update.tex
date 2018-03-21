@@ -1,0 +1,7 @@
+\begin{align*}
+    y_t &= z_t - H \cdot x_{t|t-1}\\
+    S_t &= H \cdot P_{t|t-1} \cdot H^T + R\\
+    K_t &= P_{t|t-1} \cdot H^T \cdot S_t^{-1}\\
+    x_{t|t} &= x_{t|t-1} + K_t \cdot y_t\\
+    P_{t|t} &= (I - K_t \cdot H) \cdot P_{t|t-1}\\
+\end{align*}
